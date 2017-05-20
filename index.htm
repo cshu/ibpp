@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+		<style>
+			body{
+				text-align: center;
+				font-family: Arial, Helvetica, Sans-Serif;
+				background-color: #e6e6e6;
+			}
+			td{
+				word-wrap: break-word;
+				padding: 4px;
+			}
+			table{
+				width: 100%;
+				table-layout: fixed;
+			}
+			input{
+				width: 70%;
+				box-sizing: border-box;
+			}
+			.divbutton{
+				border-radius: 8px;
+				margin-left: auto;
+				margin-right: auto;
+				width: 70%;
+				margin-top: 20px;
+				padding: 5px;
+				color: #464646;
+			}
+			#headbutton{
+				background-color: #91c9d6;
+			}
+			#getbutton{
+				background-color: #9593d4;
+			}
+			.divbutton:hover{
+				cursor:pointer;
+				width:72%
+			}
+			span{
+				color: #464646;
+				border-bottom: 1px solid #f1f1f1;
+				border-width: 3px;
+			}
+			td:first-child{
+				width:35%;
+			}
+		</style>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.3.3/vue.min.js"></script>
+		<title>ibpp</title>
+	</head>
+	<body>
+		<div id="main">
+			<span>A minimal HTTP proxy written in Python</span>
+			<br />
+			<br />
+			<input v-on:keydown="submituri" v-model="uri" placeholder="Enter a URI" autofocus />
+			<div class="divbutton" tabindex="0" id="headbutton" v-on:click="submithead">HEAD</div>
+			<div class="divbutton" tabindex="0" id="getbutton" v-on:click="submitget">GET</div>
+			<br />
+			<table>
+				<tr v-for="item in itemlst">
+					<td v-for="cell in item">
+						{{ cell }}
+					</td>
+				</tr>
+			</table>
+		</div>
+		<script>
+		var main=new Vue({
+			el:'#main',
+			data:{
+				uri:'',
+				itemlst:[]
+			},
+			methods:{
+				submituri:function(ke){
+					if(ke.keyCode!==0x0d)return;
+					this.submithead();
+				},
+				submitget:function(){
+					this.submitfn('GET');
+				},
+				submithead:function(){
+					this.submitfn('HEAD');
+				},
+				submitfn:function(method){
+					this.itemlst=[]
+					if(!this.uri)return;
+					if(this.uri.lastIndexOf('https://',0)===-1 && this.uri.lastIndexOf('http://',0)===-1)
+						this.uri='http://'+this.uri;
+					var xhr = new XMLHttpRequest;
+					xhr.open('GET','/api/proxy?method='+method+'&uri='+encodeURIComponent(this.uri));
+					xhr.onreadystatechange = function () {
+						if(xhr.readyState===XMLHttpRequest.DONE){
+							switch(xhr.status){
+							case 200:
+								var xres=JSON.parse(xhr.response);
+								main.itemlst=xres;
+								break;
+							default:
+								alert('ERROR '+xhr.status+'\n'+xhr.response);
+								break;
+							}
+						}
+					};
+					xhr.send(null);
+				}
+			}
+		});
+		</script>
+	</body>
+</html>
